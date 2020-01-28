@@ -1,5 +1,5 @@
 from mock import patch
-import pytest
+import numpy as np
 
 from agent import Agent
 
@@ -7,23 +7,33 @@ from agent import Agent
 @patch('numpy.random.random')
 def test_agent(mock_random):
     mock_random.side_effect = [0.2, 0.3]
-    agent = Agent(arms=2)
-    assert agent.maximum_average_reward == 0.3
+    agent = Agent(arms=2, runs=1, steps=5, exploration_rate=0.1, initial_values=0.)
+    assert np.array_equal(agent.value_estimates, np.array([0., 0.]))
 
 
-def test_update_averages():
-    agent = Agent(arms=2)
-    agent.update_averages(1, 0, 1, 0)
-    assert agent.average_reward == 1
-    assert agent.average_regret == 0
-    assert agent.optimal_action_percentage == 0
+@patch('numpy.random.random')
+@patch('numpy.random.uniform')
+@patch('numpy.random.randint')
+@patch('numpy.random.binomial')
+def test_play_one_run(mock_binomial, mock_randint, mock_uniform, mock_random):
+    mock_random.side_effect = [0.2, 0.3]
+    mock_uniform.side_effect = [0.2, 0.05]
+    mock_randint.side_effect = [1]
+    mock_binomial.side_effect = [0, 1, 0, 1]
+    agent = Agent(arms=2, runs=1, steps=2, exploration_rate=0.1, initial_values=0.)
+    agent.play()
+    assert np.array_equal(agent.action_optimal, np.array([[0, 1]]))
 
-    agent.update_averages(0, 1, 2, 0)
-    assert agent.average_reward == 0.5
-    assert agent.average_regret == 0.5
-    assert agent.optimal_action_percentage == 0
 
-    agent.update_averages(1, 0, 3, 1)
-    assert agent.average_reward == pytest.approx(0.667, abs=0.001)
-    assert agent.average_regret == pytest.approx(0.333, abs=0.001)
-    assert agent.optimal_action_percentage == pytest.approx(0.333, abs=0.001)
+@patch('numpy.random.random')
+@patch('numpy.random.uniform')
+@patch('numpy.random.randint')
+@patch('numpy.random.binomial')
+def test_play_two_runs(mock_binomial, mock_randint, mock_uniform, mock_random):
+    mock_random.side_effect = [0.2, 0.3, 0.8, 0.1]
+    mock_uniform.side_effect = [0.2, 0.05, 0.2, 0.2]
+    mock_randint.side_effect = [1]
+    mock_binomial.side_effect = [0, 1, 0, 1, 0, 0, 1, 0]
+    agent = Agent(arms=2, runs=2, steps=2, exploration_rate=0.1, initial_values=0.)
+    agent.play()
+    assert np.array_equal(agent.action_optimal, np.array([[0, 1], [1, 0]]))

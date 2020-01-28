@@ -1,4 +1,6 @@
 click
+matplotlib
 mock
 numpy
 pytest
+tqdm
