@@ -23,6 +23,7 @@ def test_play_one_run(mock_binomial, mock_randint, mock_uniform, mock_random):
     agent = Agent(arms=2, runs=1, steps=2, exploration_rate=0.1, initial_values=0.)
     agent.play()
     assert np.array_equal(agent.action_optimal, np.array([[0, 1]]))
+    assert np.array_equal(agent.value_estimates, np.array([0., 1.]))
 
 
 @patch('numpy.random.random')
@@ -36,4 +37,4 @@ def test_play_two_runs(mock_binomial, mock_randint, mock_uniform, mock_random):
     mock_binomial.side_effect = [0, 1, 0, 1, 0, 0, 1, 0]
     agent = Agent(arms=2, runs=2, steps=2, exploration_rate=0.1, initial_values=0.)
     agent.play()
-    assert np.array_equal(agent.action_optimal, np.array([[0, 1], [1, 0]]))
+    assert np.array_equal(agent.action_optimal, np.array([[0, 1], [1, 1]]))

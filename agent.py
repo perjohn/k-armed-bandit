@@ -17,6 +17,7 @@ class Agent:
         self.average_reward = 0
         self.maximum_average_reward = 0
         self.exploration_rate = exploration_rate
+        self.pulls = self.init_pulls()
         self.value_estimates = self.init_value_estimates()
         self.action_optimal = np.zeros((runs, steps))
         self.rewards = np.zeros((runs, steps))
@@ -24,6 +25,7 @@ class Agent:
     def play(self):
         for run_counter in tqdm(range(0, self.runs)):
             self.multi_armed_bandit = MultiArmedBandit(arms=self.arms, stationary=self.stationary)
+            self.pulls = self.init_pulls()
             self.value_estimates = self.init_value_estimates()
             self._run(run_counter=run_counter)
 
@@ -50,7 +52,11 @@ class Agent:
         print([f'{bandit.probability:1.3f}' for bandit in self.multi_armed_bandit.bandits])
 
     def update_value_estimate(self, reward: int, arm: int, pull: int):
-        self.value_estimates[arm] = self.value_estimates[arm] + (reward - self.value_estimates[arm]) / pull
+        self.pulls[arm] = self.pulls[arm] + 1
+        self.value_estimates[arm] = self.value_estimates[arm] + (reward - self.value_estimates[arm]) / self.pulls[arm]
 
     def init_value_estimates(self) -> np.ndarray:
         return np.full((self.arms,), self.initial_values)
+
+    def init_pulls(self) -> dict:
+        return {i: 0 for i in range(0, self.arms)}
